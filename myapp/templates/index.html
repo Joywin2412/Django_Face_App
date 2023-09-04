@@ -2,11 +2,62 @@
 <html>
 
 <head>
-    <title> Security</title>
+    <title>Security</title>
 </head>
 
 <body>
     <h1>Hello, World!</h1>
+    <!-- Add a Play Button -->
+    <form id="executeForm" action='action'>
+        {% csrf_token %}
+        <button type="submit">Execute Python Code</button>
+    </form>
+    <button id="playButton">Play Audio</button>
+
+    <audio id="myAudio" controls hidden preload="none">
+        <source src='myapp/now.wav' type="audio/wav" id='audioSource'>
+    </audio>
+    <script>
+        // JavaScript to handle the play button click event
+        const executeForm = document.getElementById('executeForm');
+        const playButton = document.getElementById('playButton');
+        const audio = document.getElementById('myAudio');
+        const audioSource = document.getElementById('audioSource');
+
+        executeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Send a POST request to your Django view to execute Python code
+            const response = await fetch('/action', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            });
+
+            if (response.ok) {
+                // Parse the JSON response to get the timestamp
+                const data = await response.json();
+                const timestamp = data.timestamp;
+
+                // Update the audio source with the new timestamp
+                audioSource.src = `myapp/now?cache_buster=${timestamp}`;
+
+            } else {
+                console.error('Failed to execute Python code');
+            }
+        });
+
+        playButton.addEventListener('click', () => {
+            // You can set a default timestamp for testing purposes
+            const timestamp = 1693807078;
+            audioSource.src = `myapp/now.wav`;
+            audio.load();
+
+            audio.play();
+        });
+    </script>
+
 </body>
 
 </html>
