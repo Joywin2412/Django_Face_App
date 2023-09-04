@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Security</title>
+</head>
+
+<body>
+    <!-- Add a Play Button -->
+    <div id='botresponse'>
+        Hello you can speak to me! I am accentbot
+    </div>
+    <br>
+    <!-- <br> -->
+    <form id="executeForm" action='action'>
+        {% csrf_token %}
+        <input type='text' id='chat'>
+        <button type="submit">Talk to me</button>
+    </form>
+    </form>
+    <br>
+    <audio id="myAudio" controls hidden preload="none">
+        <source src='myapp/now.wav' type="audio/wav" id='audioSource'>
+    </audio>
+    <script>
+        // JavaScript to handle the play button click event
+        const executeForm = document.getElementById('executeForm');
+        const textData = document.getElementById('chat');
+        const getBotresponse = document.getElementById('botresponse')
+        executeForm.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            console.log(textData.value)
+            // try:
+            // Send a POST request to your Django view to execute Python code
+
+            response = await fetch('/chatjob', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ data: textData.value }, status = 200)
+            });
+            let data = await response.json()
+            console.log(data)
+            getBotresponse.innerHTML = data.chat_response
+
+
+        });
+
+    </script>
+
+</body>
+
+</html>

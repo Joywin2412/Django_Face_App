@@ -24,6 +24,7 @@ from joblib import load
 from keras_preprocessing.sequence import pad_sequences
 import random
 import numpy as np
+import json
 dictionary2 = {'search_product': ['Sure, I can help you find PRODUCT_NAME. Please wait a moment while I search for it.'],
  'product_found': ['Great! PRODUCT_NAME has been added to your cart. What would you like to do next?'],
  'add_to_cart': ['Adding PRODUCT_NAME to your cart.'],
@@ -47,7 +48,8 @@ dict = {'search_product': 0,
 bot = load('myapp/bot.joblib')
 tokenizer_obj = load('myapp/tokenizer.joblib')
 recognizer = sr.Recognizer()
-
+textbot = load('myapp/textbot.joblib')
+tokenizer_obj_text = load('myapp/tokenizertext.joblib')
 
 @gzip.gzip_page
 def Home(request):
@@ -90,10 +92,90 @@ def Audio(request):
         # Return the timestamp as JSON response
         return JsonResponse({'timestamp': timestamp})
         # response = -1
-
+def Chat(request):
+    return render(request,'chatbot.html')
 def Static(request):
     return render(request,'index.html')
 #to capture video class
+def ChatAction(request):
+    data = json.loads(request.body.decode('utf-8'))
+    input_data = data.get('data', '')
+    print(input_data)
+    text = input_data
+    dict = {'recommend': 0,
+ 'advantages_of_certain': 1,
+ 'goodbye': 2,
+ 'name': 3,
+ 'greeting': 4,
+ 'delete': 5,
+ 'order_status': 6,
+ 'payment_methods': 7,
+ 'view_categories': 8,
+ 'product_details': 9,
+ 'discounts': 10,
+ 'customer_support': 11,
+ 'wishlist': 12,
+ 'order_tracking': 13,
+ 'returns': 14,
+ 'payment_issues': 15,
+ 'shipping_info': 16,
+ 'product_availability': 17,
+ 'recommend_similar': 18,
+ 'account_creation': 19,
+ 'order_confirmation': 20,
+ 'stock_notification': 21,
+ 'comparison': 22,
+ 'view_products': 23}
+    dictionary2 = {'recommend': ['Welcome Sir, I recommend you this product. People have said these things about this product: I hope you like it.'],
+ 'advantages_of_certain': ["These are the features you'll get after buying this product."],
+ 'goodbye': ['Bye', 'Take care'],
+ 'name': ['My name is Accent. Developers named me that.',
+  'I am Accent. Ready to be at your service.'],
+ 'greeting': ['Hi there. I am Accent! Ready to help.', 'Hello', 'Hi :)'],
+ 'delete': ['Extremely sorry to hear that! We will improve in the future. If you are unhappy with our service, deleting the account is possible via your profile accessed by clicking on the top of your page.'],
+ 'order_status': ['Sure, I can help you with that. Please provide me with your order number.'],
+ 'payment_methods': ['We accept various payment methods including credit cards, PayPal, and more.'],
+ 'view_categories': ['We have a wide range of categories including electronics, clothing, accessories, and more. Which category are you interested in?'],
+ 'product_details': ['Certainly! PRODUCT_NAME is a top-rated product known for its quality and performance. It features XYZ specifications and comes with ABC features. Customers have been really satisfied with its performance.'],
+ 'discounts': ["Yes, we currently have some exciting discounts and offers on various products. Make sure to check out our 'Deals' section for more details."],
+ 'customer_support': ["Of course, I'm here to assist you! Please provide me with more details about your issue, and I'll do my best to help. If it's a complex matter, I can also connect you to our customer support team."],
+ 'wishlist': ["Our wishlist feature allows you to save products you're interested in for future reference. You can add items to your wishlist by clicking the 'Add to Wishlist' button on the product page."],
+ 'order_tracking': ["Sure! Please provide me with your order number, and I'll check the status of your order for you."],
+ 'returns': ["I'm sorry to hear that. Our return policy allows you to return products within 30 days of purchase. Please visit our 'Returns' page for more information or contact our customer support for assistance with a damaged item."],
+ 'payment_issues': ["I apologize for the inconvenience. Payment issues can sometimes occur due to various reasons. Please double-check your payment information and try again. If the issue persists, don't hesitate to contact our customer support for further assistance."],
+ 'shipping_info': ["We offer various shipping options including standard and express. Shipping times and charges depend on your location and the chosen shipping method. You can find more details on our 'Shipping' page."],
+ 'product_availability': ['Let me check the current stock for you. One moment... Yes, PRODUCT_NAME is currently in stock and available for purchase.'],
+ 'recommend_similar': ['Certainly! If you like PRODUCT_NAME, you might also be interested in these similar products: PRODUCT_1, PRODUCT_2, and PRODUCT_3.'],
+ 'account_creation': ["Creating an account is easy! Just click on the 'Sign Up' button at the top of the page and follow the instructions to create your account."],
+ 'order_confirmation': ["Order confirmations are usually sent to the email address associated with your account. If you haven't received it, please check your spam folder. If you still can't find it, feel free to contact us, and we'll assist you."],
+ 'stock_notification': ["Certainly! We can notify you via email when PRODUCT_NAME is back in stock. Just provide us with your email address, and we'll keep you updated."],
+ 'comparison': ['This product is better than another'],
+ 'view_products': ['These are the list of products available under this category']}
+    
+    test_lines = clean_text([text])
+    print(test_lines)
+    
+    text = []
+    # text.append(str(TextBlob(test_lines[0]).correct()))
+    text.append(test_lines[0])
+    print(text)
+    test_sequences = tokenizer_obj_text.texts_to_sequences(text)
+    print(test_sequences)
+    # consider = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    test_review_pad = pad_sequences(test_sequences, maxlen=15, padding='post')
+    print(test_review_pad)
+
+    pred = textbot.predict([test_review_pad])
+    pred*=100
+    pred[0] = np.array(pred[0])
+    print(pred)
+    i = np.argmax(pred[0])
+    print(i)
+    inverse_dict = {value: key for key, value in dict.items()}
+    print(inverse_dict[i])
+    ourResult = random.choice(dictionary2[inverse_dict[i]])
+    return JsonResponse({'chat_response':ourResult},status = 200)
+
 class VideoCamera(object):
     def __init__(self):
         self.video = cv2.VideoCapture(0)
