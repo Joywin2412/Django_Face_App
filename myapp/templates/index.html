@@ -37,23 +37,15 @@
 
             if (response.ok) {
                 // Parse the JSON response to get the timestamp
-                const data = await response.json();
-                const timestamp = data.timestamp;
-
-                // Update the audio source with the new timestamp
-                audioSource.src = `myapp/now?cache_buster=${timestamp}`;
 
             } else {
-                console.error('Failed to execute Python code');
+                console.log('Failed to execute Python code');
             }
         });
 
         playButton.addEventListener('click', () => {
-            // You can set a default timestamp for testing purposes
-            const timestamp = 1693807078;
             audioSource.src = `myapp/now.wav`;
             audio.load();
-
             audio.play();
         });
     </script>
