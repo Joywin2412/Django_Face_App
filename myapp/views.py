@@ -99,8 +99,27 @@ def Static(request):
 #to capture video class
 def ChatAction(request):
     data = json.loads(request.body.decode('utf-8'))
+    with open('myapp/sierra.txt') as f:
+        sierra_data = f.read()
+    sierra_arr= json.loads(sierra_data)
+    with open('myapp/dictionaryProduct.txt') as f:
+        data1 = f.read()
+    sierra_dict= json.loads(data1)
+    # Now we have array 
+    print(sierra_dict['Nike Shoe 1'])
+    products_array = []
+
     input_data = data.get('data', '')
     print(input_data)
+    for ele in sierra_arr:
+        idx = input_data.find(ele)
+        if(idx!=-1):
+            products_array.append(ele)
+        input_data = input_data.replace(ele,'product')
+        
+    products_array = [sierra_dict[product]  for product in products_array]
+    print(products_array)
+    # words = ' '.join(words)
     text = input_data
     dict = {'recommend': 0,
  'advantages_of_certain': 1,
@@ -171,6 +190,10 @@ def ChatAction(request):
     print(pred)
     i = np.argmax(pred[0])
     print(i)
+    # if(i == 22):
+    #     # comparison code
+    # if(i == 0):
+        # recommendation code
     inverse_dict = {value: key for key, value in dict.items()}
     print(inverse_dict[i])
     ourResult = random.choice(dictionary2[inverse_dict[i]])
